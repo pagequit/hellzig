@@ -1,11 +1,15 @@
-const cli = @import("feature/cli.zig");
+const std = @import("std");
+const net = std.net;
+const log = std.log;
 
 pub fn main() !void {
-    // try cli.open();
+    const address = try net.Address.parseIp4("127.0.0.1", 3080);
+    var server = try address.listen(net.Address.ListenOptions{});
+    defer server.deinit();
+    log.info("Listen on {}", .{server.listen_address});
 
-    var buf: [1024]u8 = undefined;
-    const input = try cli.makePrompt(&buf, "> ");
-
-    try cli.printLine(input.?);
-    try cli.printLine(&buf);
+    while (true) {
+        const connection = try server.accept();
+        log.info("New connection from {}", .{connection.address});
+    }
 }
